@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocCast — Document to Podcast</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: #0d0d0d;
+            border: 1px solid #00ff41;
+            border-radius: 4px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 0 24px rgba(0, 255, 65, 0.08);
+        }
+
+        .header {
+            border-bottom: 1px solid #00ff4133;
+            padding-bottom: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #00ff41;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 0.82rem;
+            color: #007a1f;
+            margin-top: 0.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .upload-area {
+            border: 1px dashed #00ff4166;
+            border-radius: 4px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            background: #0a120a;
+        }
+
+        .upload-area:hover {
+            border-color: #00ff41;
+            background: #0d1a0d;
+            box-shadow: 0 0 12px rgba(0, 255, 65, 0.1);
+        }
+
+        .upload-area input[type="file"] { display: none; }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .upload-text {
+            font-size: 0.85rem;
+            color: #00cc33;
+            letter-spacing: 0.04em;
+        }
+
+        .file-name {
+            margin-top: 0.6rem;
+            font-size: 0.82rem;
+            color: #00ff41;
+            opacity: 0.7;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #00ff4111;
+            box-shadow: 0 0 16px rgba(0, 255, 65, 0.2);
+        }
+
+        .btn:disabled {
+            border-color: #1a3a1a;
+            color: #1a3a1a;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            padding: 0.9rem 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            display: none;
+        }
+
+        .status.loading {
+            background: #0a120a;
+            border: 1px solid #00ff4144;
+            color: #00cc33;
+            display: block;
+        }
+
+        .status.error {
+            background: #120a0a;
+            border: 1px solid #ff003344;
+            color: #ff4444;
+            display: block;
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .result.visible { display: block; }
+
+        .section-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #007a1f;
+            margin-bottom: 0.5rem;
+        }
+
+        .script-box {
+            background: #080808;
+            border: 1px solid #00ff4133;
+            border-radius: 4px;
+            padding: 1.2rem;
+            font-size: 0.84rem;
+            line-height: 1.8;
+            color: #00cc33;
+            max-height: 260px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+
+        .script-box::-webkit-scrollbar { width: 4px; }
+        .script-box::-webkit-scrollbar-track { background: #0a0a0a; }
+        .script-box::-webkit-scrollbar-thumb { background: #00ff4144; border-radius: 2px; }
+
+        audio {
+            width: 100%;
+            margin-top: 0.4rem;
+            border-radius: 4px;
+            filter: hue-rotate(90deg) saturate(1.5);
+        }
+
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #007a1f;
+            letter-spacing: 0.06em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙 DocCast</h1>
+            <p class="subtitle">// upload a document. get a podcast. fully offline.</p>
+        </div>
+
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">[ click to upload PDF, DOCX, or TXT ]</div>
+            <div class="file-name" id="fileName">_ no file selected</div>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" onchange="handleFileSelect(this)">
+        </div>
+
+        <button class="btn" id="generateBtn" onclick="generate()" disabled>
+            &gt;&gt; Generate Podcast
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="result" id="result">
+            <div class="section-label">// generated script</div>
+            <div class="script-box" id="scriptBox"></div>
+
+            <div class="section-label">// audio output</div>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+
+    <div class="footer">powered by Afang Soup</div>
+
+    <script>
+        let selectedFile = null;
+
+        function handleFileSelect(input) {
+            selectedFile = input.files[0];
+            document.getElementById('fileName').textContent = '_ ' + selectedFile.name;
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        async function generate() {
+            if (!selectedFile) return;
+
+            const btn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+
+            btn.disabled = true;
+            result.classList.remove('visible');
+            status.className = 'status loading';
+            status.textContent = '> extracting text from document...';
+
+            const formData = new FormData();
+            formData.append('document', selectedFile);
+
+            try {
+                status.textContent = '> generating podcast script with ollama...';
+
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    status.className = 'status error';
+                    status.textContent = '! error: ' + data.error;
+                    btn.disabled = false;
+                    return;
+                }
+
+                status.style.display = 'none';
+
+                document.getElementById('scriptBox').textContent = data.script;
+                document.getElementById('audioPlayer').src = data.audio_url + '?t=' + Date.now();
+
+                result.classList.add('visible');
+
+            } catch (err) {
+                status.className = 'status error';
+                status.textContent = '! error: ' + err.message;
+            }
+
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
