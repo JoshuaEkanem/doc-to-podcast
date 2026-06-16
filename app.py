@@ -1,12 +1,13 @@
 import requests as req
 import re
-import wave
+import soundfile as sf
 import sys
+import numpy as np
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file
 from extractor import extract_text
 from script_generator import generate_script
-from piper.voice import PiperVoice
+from kokoro_onnx import Kokoro
 
 app = Flask(__name__)
 
@@ -16,14 +17,22 @@ if getattr(sys, 'frozen', False):
 else:
     BASE_DIR = Path(__file__).parent
 
-UPLOAD_FOLDER = Path("uploads")
-OUTPUT_FOLDER = Path("output")
-VOICE_MODEL = BASE_DIR / "voices" / "en_US-lessac-medium.onnx"
+if getattr(sys, 'frozen', False):
+    # Running as exe — put uploads and output next to the exe
+    EXE_DIR = Path(sys.executable).parent
+else:
+    EXE_DIR = Path(__file__).parent
+
+UPLOAD_FOLDER = EXE_DIR / "uploads"
+OUTPUT_FOLDER = EXE_DIR / "output"
+
+KOKORO_MODEL = BASE_DIR / "voices" / "kokoro-v1.0.onnx"
+KOKORO_VOICES = BASE_DIR / "voices" / "voices-v1.0.bin"
 
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 OUTPUT_FOLDER.mkdir(exist_ok=True)
 
-voice = PiperVoice.load(VOICE_MODEL)
+kokoro = Kokoro(str(KOKORO_MODEL), str(KOKORO_VOICES))
 
 
 def clean_script(script: str) -> str:
@@ -33,8 +42,64 @@ def clean_script(script: str) -> str:
 
 
 def text_to_audio(script: str, output_path: Path):
-    with wave.open(str(output_path), "wb") as wav_file:
-        voice.synthesize_wav(script, wav_file)
+    samples, sample_rate = kokoro.create(
+        script,
+        voice="af_heart",
+        speed=1.0,
+        lang="en-us"
+    )
+    sf.write(str(output_path), samples, sample_rate)
+
+VOICE_A = "af_heart"    # Female voice for Host A
+VOICE_B = "am_michael"  # Male voice for Host B
+
+
+def parse_script(script: str) -> list:
+    lines = []
+    for line in script.strip().split("\n"):
+        line = line.strip()
+        if line.startswith("Host A:"):
+            text = line.replace("Host A:", "").strip()
+            if text:
+                lines.append(("A", text))
+        elif line.startswith("Host B:"):
+            text = line.replace("Host B:", "").strip()
+            if text:
+                lines.append(("B", text))
+    return lines
+
+
+def two_host_audio(script: str, output_path: Path):
+    lines = parse_script(script)
+
+    if not lines:
+        # Fallback to single host if parsing fails
+        text_to_audio(script, output_path)
+        return
+
+    all_samples = []
+    sample_rate = None
+    silence = None
+
+    for host, text in lines:
+        voice = VOICE_A if host == "A" else VOICE_B
+        samples, sr = kokoro.create(
+            text,
+            voice=voice,
+            speed=1.0,
+            lang="en-us"
+        )
+
+        if sample_rate is None:
+            sample_rate = sr
+            # 0.4 second silence between speakers
+            silence = np.zeros(int(sr * 0.4), dtype=samples.dtype)
+
+        all_samples.append(samples)
+        all_samples.append(silence)
+
+    final_audio = np.concatenate(all_samples)
+    sf.write(str(output_path), final_audio, sample_rate)
 
 
 @app.route("/")
@@ -72,7 +137,7 @@ def generate():
 
         # Step 3: Convert to audio
         audio_path = OUTPUT_FOLDER / "podcast.wav"
-        text_to_audio(script, audio_path)
+        two_host_audio(script, audio_path)
 
         return jsonify({
             "success": True,
@@ -105,4 +170,4 @@ def health():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

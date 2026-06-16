@@ -1,21 +1,43 @@
-Hi everyone, welcome to today's episode. We're going to be talking about the growing challenge of securing our Internet of Things devices in Nigeria.
+Host A: Welcome to "Cybersecurity 101", I'm your host, Alex. Today we're going to explore the world of threat intelligence and incident response, and how it can help organizations stay ahead of cyber threats. Joining me is my co-host, Ben.
 
-The Internet of Things has grown at an incredible pace, with billions of smart devices collecting and exchanging data across interconnected networks. This is creating a huge cybersecurity challenge for organisations that are adopting IoT technology. 
+Host B: Thanks for having me, Alex. Threat intelligence and incident response are critical components of any cybersecurity strategy. But what exactly do they mean, and how do they fit into the bigger picture?
 
-In Nigeria, we've seen widespread adoption of IoT in industries like banking, healthcare, logistics, telecommunications, and even smart infrastructure. The digital economy is driving this growth, but it's also exposing these systems to new security risks.
+Host A: Well, let's start with the concept of the threat landscape. It refers to the ever-changing spectrum of cybersecurity risks and active threats an organization faces. This includes known threats, emerging threats, and the actors behind them.
 
-One of the major concerns is edge computing - processing data closer to where it's generated can improve latency and responsiveness, but it also introduces more attack surfaces that can multiply the security risks of traditional architectures.
+Host B: That sounds like a daunting task. How has the threat landscape evolved over time? What were some of the major threats we've seen in different eras?
 
-Most IoT devices are developed with minimal security mechanisms, making them vulnerable to hacking. We're talking about unauthorised access, weak authentication, insecure communication protocols, data interception, and privacy breaches - all these are major concerns for organisations in Nigeria.
+Host A: Great question, Ben. Over the years, cyber threats have evolved significantly. In the 1990s, viruses and worms spread primarily via floppy disks and email attachments. In the 2000s, script kiddies and website defacements became more common.
 
-But what's even more concerning is that there isn't a tool out there that can directly map IoT security findings to the requirements of our data protection laws. In this case, the Nigeria Data Protection Act 2023.
+Host B: Yeah, I remember those days. But what about more recent threats? What's been on the rise in the past decade?
 
-That's why researchers at Miva Open University have developed an NDPA-compliant IoT edge vulnerability assessment system. They built it using Python, Flask, Nmap, SQLite, and ReportLab - quite a tech stack!
+Host A: Well, ransomware, phishing, and IoT exploits have become increasingly prevalent. And now we're seeing supply chain attacks, AI-powered cyber attacks, and deepfakes taking center stage.
 
-The system has four key capabilities: multi-method device discovery, rule-based vulnerability detection across 18 ports that are relevant to IoT security, privacy risk assessment mapped to six principles of the NDPA, and automated compliance report generation.
+Host B: That's alarming. It sounds like the threat landscape is getting more complex by the day. How can organizations stay ahead of these threats?
 
-They put their system to the test on a live MiFi network - which consisted of four devices, including a MiFi router and an Android-based car headunit. What they found was promising: one medium-severity vulnerability finding that correctly mapped to the NDPA, six privacy risk findings spanning multiple sections of the Act, and a network privacy score of 3.1/10.
+Host A: One way is through threat intelligence and incident response. By examining various tools and frameworks, organizations can develop a robust cybersecurity strategy that can adapt to emerging threats.
 
-But here's the best part - their system is easy to use and doesn't require any specialist configuration. This means that organisations in Nigeria can now have access to an NDPA-aligned IoT compliance assessment tool that's accessible to non-specialist compliance officers.
+Host B: That makes sense. But what about categorizing cyber threats? We see so many different types – malware, phishing, DDoS, insider threats...
 
-That's all for today's episode. Thanks for listening, and we'll catch you on the next one!
+Host A: Yes, there are several categories of cyber threats. Malware includes viruses, worms, and ransomware. Phishing is social engineering attacks delivered via emails or messages.
+
+Host B: Got it. And what about industry-specific threat trends? We hear that different industries face unique challenges.
+
+Host A: That's right. Different industries face distinct threats. For example, retail faces point-of-sale malware and credential stealing targeting customer data. The energy sector is vulnerable to SCADA system attacks and infrastructure sabotage.
+
+Host B: Yeah, I can see why those would be high-priority targets. What about government agencies? They seem like a natural target for state-sponsored actors.
+
+Host A: Absolutely. Government agencies are often targeted by espionage and Advanced Persistent Threats (APTs). And in the healthcare sector, we're seeing ransomware and insider threats impacting patient records and medical information.
+
+Host B: That's really concerning. It sounds like organizations need to be on high alert when it comes to cyber threats.
+
+Host A: Exactly. By understanding the threat landscape, developing a robust cybersecurity strategy, and staying informed about emerging threats, organizations can reduce their risk of falling victim to cyber attacks.
+
+Host B: Thanks for sharing your insights with us today, Alex.
+
+Host A: Likewise, Ben. Thanks for tuning in to this episode of "Cybersecurity 101". If you want to learn more about threat intelligence and incident response, check out our show notes for some great resources.
+
+Host A: And if you have any questions or topics you'd like us to cover in future episodes, hit us up on social media. We'll see you next time!
+
+Host B: Bye for now!
+
+Host A: Bye!
