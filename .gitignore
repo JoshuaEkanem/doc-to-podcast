@@ -6,3 +6,6 @@ output/
 __pycache__/
 *.pyc
 *.spec.bak
+voices/*.onnx
+voices/*.bin
+voices/*.json
