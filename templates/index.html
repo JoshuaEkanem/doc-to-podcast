@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocCast — Document to Podcast</title>
     <style>
+        .btn-download {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 0.8rem;
+    background: transparent;
+    color: #00ff41;
+    border: 1px solid #00ff4166;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-download:hover {
+    border-color: #00ff41;
+    background: #00ff4111;
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.15);
+}
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -187,6 +212,41 @@
             color: #007a1f;
             letter-spacing: 0.06em;
         }
+
+        .voice-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.voice-group {
+    flex: 1;
+}
+
+.voice-select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: #080808;
+    color: #00ff41;
+    border: 1px solid #00ff4144;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.voice-select:hover,
+.voice-select:focus {
+    border-color: #00ff41;
+}
+
+.voice-select option,
+.voice-select optgroup {
+    background: #0d0d0d;
+    color: #00cc33;
+}
     </style>
 </head>
 <body>
@@ -203,9 +263,92 @@
             <input type="file" id="fileInput" accept=".pdf,.docx,.txt" onchange="handleFileSelect(this)">
         </div>
 
-        <button class="btn" id="generateBtn" onclick="generate()" disabled>
-            &gt;&gt; Generate Podcast
-        </button>
+        <div class="voice-row">
+    <div class="voice-group">
+        <div class="section-label">// host a voice</div>
+        <select class="voice-select" id="voiceA">
+            <optgroup label="American Female">
+                <option value="af_heart" selected>af_heart</option>
+                <option value="af_alloy">af_alloy</option>
+                <option value="af_aoede">af_aoede</option>
+                <option value="af_bella">af_bella</option>
+                <option value="af_jessica">af_jessica</option>
+                <option value="af_kore">af_kore</option>
+                <option value="af_nicole">af_nicole</option>
+                <option value="af_nova">af_nova</option>
+                <option value="af_river">af_river</option>
+                <option value="af_sarah">af_sarah</option>
+                <option value="af_sky">af_sky</option>
+            </optgroup>
+            <optgroup label="American Male">
+                <option value="am_adam">am_adam</option>
+                <option value="am_echo">am_echo</option>
+                <option value="am_eric">am_eric</option>
+                <option value="am_fenrir">am_fenrir</option>
+                <option value="am_liam">am_liam</option>
+                <option value="am_michael">am_michael</option>
+                <option value="am_onyx">am_onyx</option>
+                <option value="am_puck">am_puck</option>
+            </optgroup>
+            <optgroup label="British Female">
+                <option value="bf_alice">bf_alice</option>
+                <option value="bf_emma">bf_emma</option>
+                <option value="bf_isabella">bf_isabella</option>
+                <option value="bf_lily">bf_lily</option>
+            </optgroup>
+            <optgroup label="British Male">
+                <option value="bm_daniel">bm_daniel</option>
+                <option value="bm_fable">bm_fable</option>
+                <option value="bm_george">bm_george</option>
+                <option value="bm_lewis">bm_lewis</option>
+            </optgroup>
+        </select>
+    </div>
+    <div class="voice-group">
+        <div class="section-label">// host b voice</div>
+        <select class="voice-select" id="voiceB">
+            <optgroup label="American Male">
+                <option value="am_michael" selected>am_michael</option>
+                <option value="am_adam">am_adam</option>
+                <option value="am_echo">am_echo</option>
+                <option value="am_eric">am_eric</option>
+                <option value="am_fenrir">am_fenrir</option>
+                <option value="am_liam">am_liam</option>
+                <option value="am_onyx">am_onyx</option>
+                <option value="am_puck">am_puck</option>
+            </optgroup>
+            <optgroup label="American Female">
+                <option value="af_heart">af_heart</option>
+                <option value="af_alloy">af_alloy</option>
+                <option value="af_aoede">af_aoede</option>
+                <option value="af_bella">af_bella</option>
+                <option value="af_jessica">af_jessica</option>
+                <option value="af_kore">af_kore</option>
+                <option value="af_nicole">af_nicole</option>
+                <option value="af_nova">af_nova</option>
+                <option value="af_river">af_river</option>
+                <option value="af_sarah">af_sarah</option>
+                <option value="af_sky">af_sky</option>
+            </optgroup>
+            <optgroup label="British Male">
+                <option value="bm_daniel">bm_daniel</option>
+                <option value="bm_fable">bm_fable</option>
+                <option value="bm_george">bm_george</option>
+                <option value="bm_lewis">bm_lewis</option>
+            </optgroup>
+            <optgroup label="British Female">
+                <option value="bf_alice">bf_alice</option>
+                <option value="bf_emma">bf_emma</option>
+                <option value="bf_isabella">bf_isabella</option>
+                <option value="bf_lily">bf_lily</option>
+            </optgroup>
+        </select>
+    </div>
+</div>
+
+<button class="btn" id="generateBtn" onclick="generate()" disabled>
+    &gt;&gt; Generate Podcast
+</button>
 
         <div class="status" id="status"></div>
 
@@ -214,7 +357,10 @@
             <div class="script-box" id="scriptBox"></div>
 
             <div class="section-label">// audio output</div>
-            <audio id="audioPlayer" controls></audio>
+<audio id="audioPlayer" controls></audio>
+<a class="btn-download" id="downloadBtn" href="#" download="podcast.wav" style="display:none">
+    &gt;&gt; Download Audio
+</a>
         </div>
     </div>
 
@@ -242,7 +388,9 @@
             status.textContent = '> extracting text from document...';
 
             const formData = new FormData();
-            formData.append('document', selectedFile);
+formData.append('document', selectedFile);
+formData.append('voice_a', document.getElementById('voiceA').value);
+formData.append('voice_b', document.getElementById('voiceB').value);
 
             try {
                 status.textContent = '> generating podcast script with ollama...';
@@ -264,9 +412,15 @@
                 status.style.display = 'none';
 
                 document.getElementById('scriptBox').textContent = data.script;
-                document.getElementById('audioPlayer').src = data.audio_url + '?t=' + Date.now();
 
-                result.classList.add('visible');
+const audioUrl = data.audio_url + '?t=' + Date.now();
+document.getElementById('audioPlayer').src = audioUrl;
+
+const downloadBtn = document.getElementById('downloadBtn');
+downloadBtn.href = audioUrl;
+downloadBtn.style.display = 'block';
+
+result.classList.add('visible');
 
             } catch (err) {
                 status.className = 'status error';

@@ -50,9 +50,6 @@ def text_to_audio(script: str, output_path: Path):
     )
     sf.write(str(output_path), samples, sample_rate)
 
-VOICE_A = "af_heart"    # Female voice for Host A
-VOICE_B = "am_michael"  # Male voice for Host B
-
 
 def parse_script(script: str) -> list:
     lines = []
@@ -69,7 +66,7 @@ def parse_script(script: str) -> list:
     return lines
 
 
-def two_host_audio(script: str, output_path: Path):
+def two_host_audio(script: str, output_path: Path, voice_a: str = "af_heart", voice_b: str = "am_michael"):
     lines = parse_script(script)
 
     if not lines:
@@ -82,7 +79,7 @@ def two_host_audio(script: str, output_path: Path):
     silence = None
 
     for host, text in lines:
-        voice = VOICE_A if host == "A" else VOICE_B
+        voice = voice_a if host == "A" else voice_b
         samples, sr = kokoro.create(
             text,
             voice=voice,
@@ -136,8 +133,10 @@ def generate():
         script_path.write_text(script, encoding="utf-8")
 
         # Step 3: Convert to audio
+        voice_a = request.form.get("voice_a", "af_heart")
+        voice_b = request.form.get("voice_b", "am_michael")
         audio_path = OUTPUT_FOLDER / "podcast.wav"
-        two_host_audio(script, audio_path)
+        two_host_audio(script, audio_path, voice_a, voice_b)
 
         return jsonify({
             "success": True,
