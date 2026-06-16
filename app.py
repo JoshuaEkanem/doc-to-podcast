@@ -4,7 +4,7 @@ import soundfile as sf
 import sys
 import numpy as np
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, Response
 from extractor import extract_text
 from script_generator import generate_script
 from kokoro_onnx import Kokoro
@@ -114,38 +114,47 @@ def generate():
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
-    # Save uploaded file
     file_path = UPLOAD_FOLDER / file.filename
     file.save(str(file_path))
 
-    try:
-        # Step 1: Extract text
-        text = extract_text(str(file_path))
-        if not text:
-            return jsonify({"error": "Could not extract text from file"}), 400
+    voice_a = request.form.get("voice_a", "af_heart")
+    voice_b = request.form.get("voice_b", "am_michael")
 
-        # Step 2: Generate script
-        script = generate_script(text)
-        script = clean_script(script)
+    def stream():
+        import json
 
-        # Save script
-        script_path = OUTPUT_FOLDER / "podcast_script.txt"
-        script_path.write_text(script, encoding="utf-8")
+        def event(step, message, percent):
+            data = json.dumps({"step": step, "message": message, "percent": percent})
+            return f"data: {data}\n\n"
 
-        # Step 3: Convert to audio
-        voice_a = request.form.get("voice_a", "af_heart")
-        voice_b = request.form.get("voice_b", "am_michael")
-        audio_path = OUTPUT_FOLDER / "podcast.wav"
-        two_host_audio(script, audio_path, voice_a, voice_b)
+        try:
+            yield event("extract", "Extracting text from document...", 10)
+            text = extract_text(str(file_path))
+            if not text:
+                yield event("error", "Could not extract text from file.", 0)
+                return
+            yield event("extract", "Text extracted successfully.", 30)
 
-        return jsonify({
-            "success": True,
-            "script": script,
-            "audio_url": "/audio"
-        })
+            yield event("script", "Generating podcast script with Ollama...", 40)
+            script = generate_script(text)
+            script = clean_script(script)
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            script_path = OUTPUT_FOLDER / "podcast_script.txt"
+            script_path.write_text(script, encoding="utf-8")
+            yield event("script", "Podcast script ready.", 65)
+
+            yield event("audio", "Synthesizing audio with Kokoro TTS...", 75)
+            audio_path = OUTPUT_FOLDER / "podcast.wav"
+            two_host_audio(script, audio_path, voice_a, voice_b)
+            yield event("audio", "Audio synthesis complete.", 95)
+
+            result = json.dumps({"script": script, "audio_url": "/audio"})
+            yield f"data: {{\"done\": true, \"result\": {result}}}\n\n"
+
+        except Exception as e:
+            yield event("error", f"Error: {str(e)}", 0)
+
+    return Response(stream(), mimetype="text/event-stream")
 
 
 @app.route("/audio")

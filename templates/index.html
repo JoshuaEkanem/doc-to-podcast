@@ -5,6 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocCast — Document to Podcast</title>
     <style>
+
+        .progress-track {
+    width: 100%;
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    margin: 0.8rem 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #00ff41;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+}
+
+.progress-label {
+    font-size: 0.85rem;
+    color: #00cc33;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.2rem;
+}
+
+.progress-steps {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.4rem;
+}
+
+.step {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: #1a3a1a;
+    transition: color 0.3s;
+}
+
+.step.active { color: #00ff41; }
+.step.done { color: #007a1f; }
+
         .btn-download {
     display: block;
     width: 100%;
@@ -350,7 +392,17 @@
     &gt;&gt; Generate Podcast
 </button>
 
-        <div class="status" id="status"></div>
+        <div class="status" id="status" style="display:none">
+    <div class="progress-label" id="progressLabel">> initializing...</div>
+    <div class="progress-track">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-steps">
+        <span class="step" id="step-extract">[ extract ]</span>
+        <span class="step" id="step-script">[ script ]</span>
+        <span class="step" id="step-audio">[ audio ]</span>
+    </div>
+</div>
 
         <div class="result" id="result">
             <div class="section-label">// generated script</div>
@@ -376,59 +428,102 @@
         }
 
         async function generate() {
-            if (!selectedFile) return;
+    if (!selectedFile) return;
 
-            const btn = document.getElementById('generateBtn');
-            const status = document.getElementById('status');
-            const result = document.getElementById('result');
+    const btn = document.getElementById('generateBtn');
+    const status = document.getElementById('status');
+    const result = document.getElementById('result');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
 
-            btn.disabled = true;
-            result.classList.remove('visible');
-            status.className = 'status loading';
-            status.textContent = '> extracting text from document...';
+    btn.disabled = true;
+    result.classList.remove('visible');
+    status.style.display = 'block';
+    progressBar.style.width = '0%';
 
-            const formData = new FormData();
-formData.append('document', selectedFile);
-formData.append('voice_a', document.getElementById('voiceA').value);
-formData.append('voice_b', document.getElementById('voiceB').value);
+    const steps = {
+        'extract': document.getElementById('step-extract'),
+        'script': document.getElementById('step-script'),
+        'audio': document.getElementById('step-audio'),
+    };
 
-            try {
-                status.textContent = '> generating podcast script with ollama...';
+    Object.values(steps).forEach(s => s.className = 'step');
 
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    body: formData
-                });
+    const formData = new FormData();
+    formData.append('document', selectedFile);
+    formData.append('voice_a', document.getElementById('voiceA').value);
+    formData.append('voice_b', document.getElementById('voiceB').value);
 
-                const data = await response.json();
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            body: formData
+        });
 
-                if (data.error) {
-                    status.className = 'status error';
-                    status.textContent = '! error: ' + data.error;
-                    btn.disabled = false;
-                    return;
-                }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-                status.style.display = 'none';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-                document.getElementById('scriptBox').textContent = data.script;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop();
 
-const audioUrl = data.audio_url + '?t=' + Date.now();
-document.getElementById('audioPlayer').src = audioUrl;
+            for (const line of lines) {
+                if (!line.startsWith('data:')) continue;
+                const json = line.replace('data: ', '').trim();
 
-const downloadBtn = document.getElementById('downloadBtn');
-downloadBtn.href = audioUrl;
-downloadBtn.style.display = 'block';
+                try {
+                    const data = JSON.parse(json);
 
-result.classList.add('visible');
+                    if (data.error) {
+                        progressLabel.textContent = '! ' + data.error;
+                        progressLabel.style.color = '#ff4444';
+                        btn.disabled = false;
+                        return;
+                    }
 
-            } catch (err) {
-                status.className = 'status error';
-                status.textContent = '! error: ' + err.message;
+                    if (data.done) {
+                        progressBar.style.width = '100%';
+                        progressLabel.textContent = '> podcast ready.';
+                        Object.values(steps).forEach(s => s.className = 'step done');
+
+                        setTimeout(() => { status.style.display = 'none'; }, 800);
+
+                        document.getElementById('scriptBox').textContent = data.result.script;
+                        const audioUrl = data.result.audio_url + '?t=' + Date.now();
+                        document.getElementById('audioPlayer').src = audioUrl;
+                        const downloadBtn = document.getElementById('downloadBtn');
+                        downloadBtn.href = audioUrl;
+                        downloadBtn.style.display = 'block';
+                        result.classList.add('visible');
+
+                    } else {
+                        progressLabel.textContent = '> ' + data.message;
+                        progressBar.style.width = data.percent + '%';
+
+                        if (steps[data.step]) {
+                            steps[data.step].className = 'step active';
+                            if (data.percent >= 30 && data.step === 'extract')
+                                steps['extract'].className = 'step done';
+                            if (data.percent >= 65 && data.step === 'script')
+                                steps['script'].className = 'step done';
+                        }
+                    }
+                } catch (e) { continue; }
             }
-
-            btn.disabled = false;
         }
+
+    } catch (err) {
+        progressLabel.textContent = '! error: ' + err.message;
+        progressLabel.style.color = '#ff4444';
+    }
+
+    btn.disabled = false;
+}
     </script>
 </body>
 </html>
